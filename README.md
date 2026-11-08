@@ -25,7 +25,7 @@ On the GitHub Free plan, rulesets and branch protection only work on public repo
 | `.github/CODEOWNERS`, `.github/PULL_REQUEST_TEMPLATE.md` | Review requests and the pull request checklist. |
 | `.releaserc.json` | semantic-release without npm publishing. |
 | `.gitattributes`, `.editorconfig` | LF line endings in every checkout, Windows included, and the editor defaults. |
-| `rulesets/main.json` | Ruleset for the default branch: no deletion or force push, pull requests only, and the **Conventional Commit title** and **CI passed** checks are required. |
+| `rulesets/main.json` | Ruleset for the default branch: no deletion or force push, signed commits, squash-merged pull requests only, and the **Conventional Commit title** and **CI passed** checks are required. |
 | `rulesets/maintainer-review.json` | Ruleset for the default branch: squash merges only and one approving review from a code owner. Only org owners can bypass it, and only through a pull request. |
 
 Issue templates, the security policy and the code of conduct come from [modulane/.github](https://github.com/modulane/.github), so they are not repeated here.
