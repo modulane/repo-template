@@ -4,6 +4,12 @@ The reference GitHub setup for every modulane repository. When a workflow or a s
 
 This repository is private and is not part of any release. It is also a GitHub template, so a new repository can start from it with **Use this template**.
 
+## Access
+
+This repository stays private, and only org owners can open it. The org base permission is "none", and members cannot create repositories, so only org owners can use the template too. Never give the `contributors` team or an outside collaborator access to it, and keep forking turned off.
+
+On the GitHub Free plan, rulesets and branch protection only work on public repositories, so the rulesets below are not enforced here and `main` is unprotected. Changes still go through squash-merged pull requests. The rules apply as soon as the org moves to a paid plan.
+
 ## What it holds
 
 | Path | What it is |
@@ -18,6 +24,7 @@ This repository is private and is not part of any release. It is also a GitHub t
 | `.github/labels.json` | The labels every repository uses. |
 | `.github/CODEOWNERS`, `.github/PULL_REQUEST_TEMPLATE.md` | Review requests and the pull request checklist. |
 | `.releaserc.json` | semantic-release without npm publishing. |
+| `.gitattributes`, `.editorconfig` | LF line endings in every checkout, Windows included, and the editor defaults. |
 | `rulesets/main.json` | Ruleset for the default branch: no deletion or force push, pull requests only, and the **Conventional Commit title** and **CI passed** checks are required. |
 | `rulesets/maintainer-review.json` | Ruleset for the default branch: squash merges only and one approving review from a code owner. Only org owners can bypass it, and only through a pull request. |
 
@@ -35,9 +42,11 @@ Issue templates, the security policy and the code of conduct come from [modulane
 ## Starting a new repository
 
 1. Create the repository from this template, or copy the files above.
-2. In `release.yml`, replace `REPO-NAME` with the repository's name. Until then the release job never runs.
-3. Replace the `checks` job in `ci.yml` and list each new job under `needs:` in `ci-passed`.
-4. Apply the repository settings: squash merges only, the pull request title as the commit title and an empty commit body, and branches deleted after merge.
+2. Replace `README.md` with the repository's own, check that the MIT `LICENSE` fits, and keep the `rulesets/` folder only until step 7 has applied it: the other repositories do not carry it.
+3. Add a `package.json` that pins Yarn in `packageManager` and has `semantic-release` in `devDependencies`, and commit `yarn.lock`. The release job installs semantic-release from the lockfile and never downloads it, so it fails without them. A package that uses npm instead follows [Publishing to npm](#publishing-to-npm).
+4. In `release.yml`, replace `REPO-NAME` with the repository's name. Until then the release job never runs.
+5. Replace the `checks` job in `ci.yml` and list each new job under `needs:` in `ci-passed`.
+6. Apply the repository settings: squash merges only, the pull request title as the commit title and an empty commit body, and branches deleted after merge.
 
    ```bash
    gh api -X PATCH repos/modulane/NAME \
@@ -46,17 +55,17 @@ Issue templates, the security policy and the code of conduct come from [modulane
      -F delete_branch_on_merge=true
    ```
 
-5. Apply the rulesets:
+7. Apply the rulesets:
 
    ```bash
    gh api repos/modulane/NAME/rulesets --method POST --input rulesets/main.json
    gh api repos/modulane/NAME/rulesets --method POST --input rulesets/maintainer-review.json
    ```
 
-   On the GitHub Free plan, rulesets only work on public repositories. A private repository gets them when it goes public.
+   On the GitHub Free plan, rulesets only work on public repositories. A private repository gets them when it goes public, or when the org moves to a paid plan.
 
-6. Run the **Labels** workflow once from the Actions tab to create the labels.
-7. If the repository should be readable by contributors, give the `contributors` team read access to it. The org base permission is "none", so a new repository is closed to them until then.
+8. Run the **Labels** workflow once from the Actions tab to create the labels.
+9. If the repository should be readable by contributors, give the `contributors` team read access to it. The org base permission is "none", so a new repository is closed to them until then.
 
 ## Publishing to npm
 
