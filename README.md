@@ -79,12 +79,20 @@ The check needs no token: it reads the description from the event and never runs
 
 ## Publishing to npm
 
-`release.yml` here only creates tags and GitHub releases, as in nuxt-core and nuxt-ripple. A package published to npm, like [dev-workspace-cli](https://github.com/modulane/dev-workspace-cli/blob/main/.github/workflows/release.yml), adds:
+`release.yml` here only creates tags and GitHub releases, as in nuxt-core and nuxt-extras. A package published to npm, like [dev-workspace-cli](https://github.com/modulane/dev-workspace-cli/blob/main/.github/workflows/release.yml), adds:
 
 - an `npm` environment on the release job, with the package URL,
 - the `id-token: write` permission, for trusted publishing with provenance,
 - a check that npm is 11.5.1 or newer, and `npm audit signatures` after the install,
 - `@semantic-release/npm` in `.releaserc.json`.
+
+## Monorepos
+
+A repository with several packages that are released on their own, like [nuxt-extras](https://github.com/modulane/nuxt-extras), keeps this setup with three changes:
+
+- **Releases:** `release.yml` runs [multi-semantic-release](https://github.com/anolilab/semantic-release/tree/main/packages/multi-semantic-release) instead of semantic-release. It releases each package from the commits that change its folder, with tags such as `@modulane/nuxt-ripple@0.2.0`. Set `"multi-release": { "ignorePrivate": false }` in the root `package.json` while the packages are private.
+- **Titles:** `pr-title.yml` has a second step: a `feat:` or `fix:` title must name, as its scope, a package that the pull request changes (`fix(ripple): …`).
+- **First releases:** semantic-release makes a package's first release 1.0.0. Before merging the pull request that adds a package, tag `main` with `@modulane/<package>@0.0.0` so it starts at 0.1.0.
 
 ## License
 
