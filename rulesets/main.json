@@ -50,6 +50,10 @@
           {
             "context": "CI passed",
             "integration_id": 15368
+          },
+          {
+            "context": "AI disclosure",
+            "integration_id": 15368
           }
         ],
         "strict_required_status_checks_policy": false
