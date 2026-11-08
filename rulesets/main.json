@@ -18,11 +18,12 @@
       "type": "non_fast_forward"
     },
     {
+      "type": "required_signatures"
+    },
+    {
       "parameters": {
         "allowed_merge_methods": [
-          "merge",
-          "squash",
-          "rebase"
+          "squash"
         ],
         "dismiss_stale_reviews_on_push": false,
         "dismissal_restriction": {
