@@ -17,18 +17,28 @@ On the GitHub Free plan, rulesets and branch protection only work on public repo
 | `.github/workflows/ci.yml` | CI on every pull request, ending in the single **CI passed** job that the main ruleset requires. Replace the `checks` job with the repository's own checks. |
 | `.github/workflows/release.yml` | On every push to main, runs CI and then semantic-release: a `vX.Y.Z` tag and a GitHub release. |
 | `.github/workflows/pr-title.yml` | Checks that the pull request title is a lowercase Conventional Commit. |
+| `.github/workflows/ai-disclosure.yml` | Fails until the pull request's **AI use** section says whether AI tools were used, and how. See [AI disclosure](#ai-disclosure). |
 | `.github/workflows/pr-labels.yml` | Labels each pull request from its title (kind and `release:` label) and assigns its author. |
 | `.github/workflows/labels.yml` | Syncs the repository labels from `.github/labels.json`. |
 | `.github/workflows/zizmor.yml` | Audits workflow security on pull requests that change `.github/`. |
 | `.github/dependabot.yml` | One grouped pull request a week for the pinned actions, with a 7-day cooldown and a `ci:` prefix. |
 | `.github/labels.json` | The labels every repository uses. |
-| `.github/CODEOWNERS`, `.github/PULL_REQUEST_TEMPLATE.md` | Review requests and the pull request checklist. |
+| `.github/CODEOWNERS`, `.github/PULL_REQUEST_TEMPLATE.md` | Review requests, and the pull request template with its **AI use** section and checklist. |
 | `.releaserc.json` | semantic-release without npm publishing. |
 | `.gitattributes`, `.editorconfig` | LF line endings in every checkout, Windows included, and the editor defaults. |
-| `rulesets/main.json` | Ruleset for the default branch: no deletion or force push, signed commits, squash-merged pull requests only, and the **Conventional Commit title** and **CI passed** checks are required. |
+| `rulesets/main.json` | Ruleset for the default branch: no deletion or force push, signed commits, squash-merged pull requests only, and the **Conventional Commit title**, **CI passed** and **AI disclosure** checks are required. |
 | `rulesets/maintainer-review.json` | Ruleset for the default branch: squash merges only and one approving review from a code owner. Only org owners can bypass it, and only through a pull request. |
 
 Issue templates, the security policy and the code of conduct come from [modulane/.github](https://github.com/modulane/.github), so they are not repeated here.
+
+## AI disclosure
+
+Every pull request and every issue says whether AI tools were used, and the maintainer follows the same rule as contributors.
+
+- **Pull requests:** the template's **AI use** section has two boxes, **No AI tool was used** and **AI tools were used**. The second needs each tool and what it did written under it. The **AI disclosure** check fails until exactly one box is ticked, and the main ruleset requires it, so a pull request without a disclosure cannot be merged. Editing the description runs the check again. Dependabot pull requests are exempt.
+- **Issues:** every issue form has a required **AI use** question, with a box to name the tools.
+
+The check needs no token: it reads the description from the event and never runs code from the pull request. Comments and reviews cannot be checked, so the contributing guide asks for the same disclosure there.
 
 ## Rules every workflow follows
 
