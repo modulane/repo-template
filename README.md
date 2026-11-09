@@ -16,17 +16,17 @@ On the GitHub Free plan, rulesets and branch protection only work on public repo
 | --- | --- |
 | `.github/workflows/ci.yml` | CI on every pull request, ending in the single **CI passed** job that the main ruleset requires. Replace the `checks` job with the repository's own checks. |
 | `.github/workflows/release.yml` | On every push to main, runs CI and then semantic-release: a `vX.Y.Z` tag and a GitHub release. |
-| `.github/workflows/pr-title.yml` | Checks that the pull request title is a lowercase Conventional Commit. |
+| `.github/workflows/pr-title.yml` | Checks that the pull request title is a lowercase Conventional Commit. See [Shared workflows](#shared-workflows). |
 | `.github/workflows/ai-disclosure.yml` | Fails until the pull request's **AI use** section says whether AI tools were used, and how. See [AI disclosure](#ai-disclosure). |
-| `.github/workflows/pr-labels.yml` | Labels each pull request from its title (kind and `release:` label) and assigns its author. |
+| `.github/workflows/pr-labels.yml` | Labels each pull request from its title (kind and `release:` label) and assigns its author, unless it is a bot. |
 | `.github/workflows/labels.yml` | Syncs the repository labels from `.github/labels.json`. |
 | `.github/workflows/zizmor.yml` | Audits workflow security on pull requests that change `.github/`. |
-| `.github/dependabot.yml` | One grouped pull request a week for the pinned actions, with a 7-day cooldown and a `ci:` prefix. |
+| `.github/dependabot.yml` | One grouped pull request a week for the pinned actions and shared workflows, with a `ci:` prefix and a 7-day cooldown, except for modulane's own releases. |
 | `.github/labels.json` | The labels every repository uses. |
 | `.github/CODEOWNERS`, `.github/PULL_REQUEST_TEMPLATE.md` | Review requests, and the pull request template with its **AI use** section and checklist. |
 | `.releaserc.json` | semantic-release without npm publishing. |
 | `.gitattributes`, `.editorconfig` | LF line endings in every checkout, Windows included, and the editor defaults. |
-| `rulesets/main.json` | Ruleset for the default branch: no deletion or force push, signed commits, squash-merged pull requests only, and the **Conventional Commit title**, **CI passed** and **AI disclosure** checks are required. |
+| `rulesets/main.json` | Ruleset for the default branch: no deletion or force push, signed commits, squash-merged pull requests only, and the **Pull request title / Conventional Commit title**, **CI passed** and **AI disclosure / AI use section** checks are required. |
 | `rulesets/maintainer-review.json` | Ruleset for the default branch: squash merges only and one approving review from a code owner. Only org owners can bypass it, and only through a pull request. |
 
 Issue templates, the security policy and the code of conduct come from [modulane/.github](https://github.com/modulane/.github), so they are not repeated here.
@@ -35,10 +35,18 @@ Issue templates, the security policy and the code of conduct come from [modulane
 
 Every pull request and every issue says whether AI tools were used, and the maintainer follows the same rule as contributors.
 
-- **Pull requests:** the template's **AI use** section has two boxes, **No AI tool was used** and **AI tools were used**. The second needs each tool and what it did written under it. The **AI disclosure** check fails until exactly one box is ticked, and the main ruleset requires it, so a pull request without a disclosure cannot be merged. Editing the description runs the check again. Dependabot pull requests are exempt.
+- **Pull requests:** the template's **AI use** section has two boxes, **No AI tool was used** and **AI tools were used**. The second needs each tool and what it did written under it. The **AI disclosure / AI use section** check fails until exactly one box is ticked, and the main ruleset requires it, so a pull request without a disclosure cannot be merged. Editing the description runs the check again. Dependabot pull requests are exempt.
 - **Issues:** every issue form has a required **AI use** question, with a box to name the tools.
 
 The check is the [modulane/ai-disclosure](https://github.com/modulane/ai-disclosure) action, pinned to a commit SHA like every other action. It needs no token: it reads the description from the event and never runs code from the pull request. Comments and reviews cannot be checked, so the contributing guide asks for the same disclosure there.
+
+## Shared workflows
+
+`pr-title.yml`, `pr-labels.yml`, `ai-disclosure.yml`, `labels.yml` and `zizmor.yml` hold only a trigger and a call to the same workflow in [modulane/workflows](https://github.com/modulane/workflows), so a change made there reaches every repository through Dependabot. Change the workflow there, not here.
+
+- Each call is pinned to the commit SHA of a modulane/workflows release and grants the permissions the called workflow needs.
+- A check from a called workflow is named after both jobs, so the main ruleset requires **Pull request title / Conventional Commit title** and **AI disclosure / AI use section**. Keep the caller job names as they are.
+- `ci.yml` and `release.yml` stay in each repository, because they run the repository's own checks and release.
 
 ## Rules every workflow follows
 
@@ -91,7 +99,7 @@ The check is the [modulane/ai-disclosure](https://github.com/modulane/ai-disclos
 A repository with several packages that are released on their own, like [nuxt-extras](https://github.com/modulane/nuxt-extras), keeps this setup with three changes:
 
 - **Releases:** `release.yml` runs [multi-semantic-release](https://github.com/anolilab/semantic-release/tree/main/packages/multi-semantic-release) instead of semantic-release. It releases each package from the commits that change its folder, with tags such as `@modulane/nuxt-ripple@0.2.0`. Set `"multi-release": { "ignorePrivate": false }` in the root `package.json` while the packages are private.
-- **Titles:** `pr-title.yml` has a second step: a `feat:` or `fix:` title must name, as its scope, a package that the pull request changes (`fix(ripple): …`).
+- **Titles:** `pr-title.yml` passes `package-scope: true` to the shared workflow: a `feat:` or `fix:` title must name, as its scope, a package that the pull request changes (`fix(ripple): …`).
 - **First releases:** semantic-release makes a package's first release 1.0.0. Before merging the pull request that adds a package, tag `main` with `@modulane/<package>@0.0.0` so it starts at 0.1.0.
 
 ## License
