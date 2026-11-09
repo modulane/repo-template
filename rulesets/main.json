@@ -44,7 +44,7 @@
         "do_not_enforce_on_create": false,
         "required_status_checks": [
           {
-            "context": "Conventional Commit title",
+            "context": "Pull request title / Conventional Commit title",
             "integration_id": 15368
           },
           {
@@ -52,7 +52,7 @@
             "integration_id": 15368
           },
           {
-            "context": "AI disclosure",
+            "context": "AI disclosure / AI use section",
             "integration_id": 15368
           }
         ],
