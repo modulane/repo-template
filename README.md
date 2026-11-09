@@ -38,7 +38,7 @@ Every pull request and every issue says whether AI tools were used, and the main
 - **Pull requests:** the template's **AI use** section has two boxes, **No AI tool was used** and **AI tools were used**. The second needs each tool and what it did written under it. The **AI disclosure** check fails until exactly one box is ticked, and the main ruleset requires it, so a pull request without a disclosure cannot be merged. Editing the description runs the check again. Dependabot pull requests are exempt.
 - **Issues:** every issue form has a required **AI use** question, with a box to name the tools.
 
-The check needs no token: it reads the description from the event and never runs code from the pull request. Comments and reviews cannot be checked, so the contributing guide asks for the same disclosure there.
+The check is the [modulane/ai-disclosure](https://github.com/modulane/ai-disclosure) action, pinned to a commit SHA like every other action. It needs no token: it reads the description from the event and never runs code from the pull request. Comments and reviews cannot be checked, so the contributing guide asks for the same disclosure there.
 
 ## Rules every workflow follows
 
