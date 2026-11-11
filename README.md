@@ -15,7 +15,7 @@ On the GitHub Free plan, rulesets and branch protection only work on public repo
 | Path | What it is |
 | --- | --- |
 | `.github/workflows/ci.yml` | CI on every pull request, ending in the single **CI passed** job that the main ruleset requires. Replace the `checks` job with the repository's own checks. |
-| `.github/workflows/release.yml` | On every push to main, runs CI and then semantic-release: a `vX.Y.Z` tag and a GitHub release. Its last job adds each pull request's **Release notes** section and closed issues to the release. See [Shared workflows](#shared-workflows). |
+| `.github/workflows/release.yml` | On every push to main, runs CI and then semantic-release: a `vX.Y.Z` tag and a GitHub release. Its last job gives each feature or fix listed in a pull request's **Release notes** section its own entry in the release, with the issues it closes. See [Shared workflows](#shared-workflows). |
 | `.github/workflows/pr-title.yml` | Checks that the pull request title is a lowercase Conventional Commit. See [Shared workflows](#shared-workflows). |
 | `.github/workflows/ai-disclosure.yml` | Fails until the pull request's **AI use** section says whether AI tools were used, and how. See [AI disclosure](#ai-disclosure). |
 | `.github/workflows/pr-labels.yml` | Labels each pull request from its title (kind and `release:` label) and assigns its author, unless it is a bot. |
@@ -47,7 +47,7 @@ The check is the [modulane/ai-disclosure](https://github.com/modulane/ai-disclos
 - Each call is pinned to the commit SHA of a modulane/workflows release and grants the permissions the called workflow needs.
 - A check from a called workflow is named after both jobs, so the main ruleset requires **Pull request title / Conventional Commit title** and **AI disclosure / AI use section**. Keep the caller job names as they are.
 - `ci.yml` and `release.yml` stay in each repository, because they run the repository's own checks and release.
-- `release.yml` ends with a **Release notes** job that calls `release-notes.yml` there. It adds the **Release notes** section of each pull request, and the issues it closes, under the pull request's entry in the GitHub release. It handles each release once, older ones included, so running the release workflow by hand fills in any release it missed.
+- `release.yml` ends with a **Release notes** job that calls `release-notes.yml` there. It rebuilds the GitHub release entries from the **Release notes** section of each pull request: one entry per feature or fix that section lists, with the issues it closes. Every run rebuilds every release, older ones included, so a change to a pull request's notes reaches its release on the next run.
 
 ## Rules every workflow follows
 
