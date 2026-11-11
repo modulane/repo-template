@@ -91,7 +91,7 @@ The check is the [modulane/ai-disclosure](https://github.com/modulane/ai-disclos
    On the GitHub Free plan, only the Dependabot settings work in a private repository: it turns on the others when it goes public, along with the rulesets.
 
 9. Run the **Labels** workflow once from the Actions tab to create the labels.
-10. Install the **repo-check** GitHub App on the repository, so the **Repo check** workflow can run there. Outside modulane, see [Outside modulane](#outside-modulane).
+10. Install the **repo-check** GitHub App on the repository, so the **Repo check** workflow can run there. On the GitHub Free plan, a private repository cannot read the organization's variables and secrets, so the job is skipped there until the repository goes public. Outside modulane, see [Outside modulane](#outside-modulane).
 11. In modulane, if the repository should be readable by contributors, give the `contributors` team read access to it. The org base permission is "none", so a new repository is closed to them until then.
 
 ## Repo check
@@ -119,7 +119,7 @@ A repository in another account or organization can start from this template and
 - The `modulane/*` exclusion in `.github/dependabot.yml`, which lets modulane's own releases skip the cooldown.
 - Issue templates, a security policy and a code of conduct, which modulane keeps in [modulane/.github](https://github.com/modulane/.github) for all its repositories.
 
-The **Repo check** workflow needs a GitHub App of its own: create one with read access to administration and write access to contents, pull requests and workflows, and no webhook. Install it on the repositories, then add its client ID as the `REPO_CHECK_CLIENT_ID` variable and a private key as the `REPO_CHECK_PRIVATE_KEY` secret, on the organization or the repository. Until then the job is skipped. repo-check compares with modulane/repo-template, so each of these changes is a difference: list them in `.github/repo-check.yml`, or compare with your own copy of this template, named in the `reference` input of the shared workflow.
+The **Repo check** workflow needs a GitHub App of its own: create one with read access to administration and write access to contents, pull requests and workflows, and no webhook. Install it on the repositories, then add its client ID as the `REPO_CHECK_CLIENT_ID` variable and a private key as the `REPO_CHECK_PRIVATE_KEY` secret, on the organization or the repository. Until then the job is skipped. On the GitHub Free plan, a private repository only reads variables and secrets set on the repository itself. repo-check compares with modulane/repo-template, so each of these changes is a difference: list them in `.github/repo-check.yml`, or compare with your own copy of this template, named in the `reference` input of the shared workflow.
 
 ## Publishing to npm
 
