@@ -2,13 +2,7 @@
 
 The reference GitHub setup for every modulane repository. When a workflow or a setting changes in one repository, it changes here first, and the others follow this repository.
 
-This repository is private and is not part of any release. It is also a GitHub template, so a new repository can start from it with **Use this template**.
-
-## Access
-
-This repository stays private, and only org owners can open it. The org base permission is "none", and members cannot create repositories, so only org owners can use the template too. Never give the `contributors` team or an outside collaborator access to it, and keep forking turned off.
-
-On the GitHub Free plan, rulesets and branch protection only work on public repositories, so the rulesets below are not enforced here and `main` is unprotected. Changes still go through squash-merged pull requests. The rules apply as soon as the org moves to a paid plan.
+This repository is not part of any release. It is a GitHub template, so a new repository can start from it with **Use this template**, and [modulane/repo-check](https://github.com/modulane/repo-check) compares every repository with it. See [Repo check](#repo-check). It is public, and a repository outside modulane can start from it too: see [Outside modulane](#outside-modulane).
 
 ## What it holds
 
@@ -21,6 +15,7 @@ On the GitHub Free plan, rulesets and branch protection only work on public repo
 | `.github/workflows/pr-labels.yml` | Labels each pull request from its title (kind and `release:` label) and assigns its author, unless it is a bot. |
 | `.github/workflows/labels.yml` | Syncs the repository labels from `.github/labels.json`. |
 | `.github/workflows/zizmor.yml` | Audits workflow security on pull requests that change `.github/`. |
+| `.github/workflows/repo-check.yml` | Every Monday, compares the repository with this one and keeps a pull request open with what has drifted. See [Repo check](#repo-check). |
 | `.github/dependabot.yml` | One grouped pull request a week for the pinned actions and shared workflows, with a `ci:` prefix and a 7-day cooldown, except for modulane's own releases. |
 | `.github/labels.json` | The labels every repository uses. |
 | `.github/CODEOWNERS`, `.github/PULL_REQUEST_TEMPLATE.md` | Review requests, and the pull request template with its **Release notes** and **AI use** sections and checklist. |
@@ -28,6 +23,8 @@ On the GitHub Free plan, rulesets and branch protection only work on public repo
 | `.gitattributes`, `.editorconfig` | LF line endings in every checkout, Windows included, and the editor defaults. |
 | `rulesets/main.json` | Ruleset for the default branch: no deletion or force push, signed commits, squash-merged pull requests only, and the **Pull request title / Conventional Commit title**, **CI passed** and **AI disclosure / AI use section** checks are required. |
 | `rulesets/maintainer-review.json` | Ruleset for the default branch: squash merges only and one approving review from a code owner. Only org owners can bypass it, and only through a pull request. |
+| `settings.json` | The repository settings: squash merges only, the pull request title as the commit title and an empty commit body, branches deleted after merge, and a suggestion to update a pull request's branch when it falls behind. |
+| `security.json` | The security settings: Dependabot alerts and security updates, secret scanning with push protection, private vulnerability reporting, and approval for workflows from a first-time contributor's fork. |
 
 Issue templates, the security policy and the code of conduct come from [modulane/.github](https://github.com/modulane/.github), so they are not repeated here.
 
@@ -42,7 +39,7 @@ The check is the [modulane/ai-disclosure](https://github.com/modulane/ai-disclos
 
 ## Shared workflows
 
-`pr-title.yml`, `pr-labels.yml`, `ai-disclosure.yml`, `labels.yml` and `zizmor.yml` hold only a trigger and a call to the same workflow in [modulane/workflows](https://github.com/modulane/workflows), so a change made there reaches every repository through Dependabot. Change the workflow there, not here.
+`pr-title.yml`, `pr-labels.yml`, `ai-disclosure.yml`, `labels.yml`, `zizmor.yml` and `repo-check.yml` hold only a trigger and a call to the same workflow in [modulane/workflows](https://github.com/modulane/workflows), so a change made there reaches every repository through Dependabot. Change the workflow there, not here.
 
 - Each call is pinned to the commit SHA of a modulane/workflows release and grants the permissions the called workflow needs.
 - A check from a called workflow is named after both jobs, so the main ruleset requires **Pull request title / Conventional Commit title** and **AI disclosure / AI use section**. Keep the caller job names as they are.
@@ -61,30 +58,68 @@ The check is the [modulane/ai-disclosure](https://github.com/modulane/ai-disclos
 ## Starting a new repository
 
 1. Create the repository from this template, or copy the files above.
-2. Replace `README.md` with the repository's own, check that the MIT `LICENSE` fits, and keep the `rulesets/` folder only until step 7 has applied it: the other repositories do not carry it.
+2. Replace `README.md` with the repository's own, check that the MIT `LICENSE` fits, and keep `settings.json`, `security.json` and the `rulesets/` folder only until steps 6 to 8 have applied them: the other repositories do not carry them.
 3. Add a `package.json` that pins Yarn in `packageManager` and has `semantic-release` in `devDependencies`, and commit `yarn.lock`. The release job installs semantic-release from the lockfile and never downloads it, so it fails without them. A package that uses npm instead follows [Publishing to npm](#publishing-to-npm).
-4. In `release.yml`, replace `REPO-NAME` with the repository's name. Until then the release job never runs.
+4. In `release.yml`, replace `modulane/REPO-NAME` with the repository's owner and name. Until then the release job never runs.
 5. Replace the `checks` job in `ci.yml` and list each new job under `needs:` in `ci-passed`.
-6. Apply the repository settings: squash merges only, the pull request title as the commit title and an empty commit body, and branches deleted after merge.
+6. Apply the repository settings from `settings.json`:
 
    ```bash
-   gh api -X PATCH repos/modulane/NAME \
-     -F allow_squash_merge=true -F allow_merge_commit=false -F allow_rebase_merge=false \
-     -f squash_merge_commit_title=PR_TITLE -f squash_merge_commit_message=BLANK \
-     -F delete_branch_on_merge=true
+   gh api repos/OWNER/NAME --method PATCH --input settings.json
    ```
 
 7. Apply the rulesets:
 
    ```bash
-   gh api repos/modulane/NAME/rulesets --method POST --input rulesets/main.json
-   gh api repos/modulane/NAME/rulesets --method POST --input rulesets/maintainer-review.json
+   gh api repos/OWNER/NAME/rulesets --method POST --input rulesets/main.json
+   gh api repos/OWNER/NAME/rulesets --method POST --input rulesets/maintainer-review.json
    ```
 
    On the GitHub Free plan, rulesets only work on public repositories. A private repository gets them when it goes public, or when the org moves to a paid plan.
 
-8. Run the **Labels** workflow once from the Actions tab to create the labels.
-9. If the repository should be readable by contributors, give the `contributors` team read access to it. The org base permission is "none", so a new repository is closed to them until then.
+8. Turn on the security settings from `security.json`: Dependabot alerts and security updates, secret scanning with push protection, private vulnerability reporting, which a security policy that asks for private reports relies on, and approval for workflows from a first-time contributor's fork.
+
+   ```bash
+   gh api repos/OWNER/NAME/vulnerability-alerts --method PUT
+   gh api repos/OWNER/NAME/automated-security-fixes --method PUT
+   gh api repos/OWNER/NAME/private-vulnerability-reporting --method PUT
+   gh api repos/OWNER/NAME/actions/permissions/fork-pr-contributor-approval --method PUT -f approval_policy=first_time_contributors
+   echo '{"security_and_analysis":{"secret_scanning":{"status":"enabled"},"secret_scanning_push_protection":{"status":"enabled"}}}' |
+     gh api repos/OWNER/NAME --method PATCH --input -
+   ```
+
+   On the GitHub Free plan, only the Dependabot settings work in a private repository: it turns on the others when it goes public, along with the rulesets.
+
+9. Run the **Labels** workflow once from the Actions tab to create the labels.
+10. Install the **repo-check** GitHub App on the repository, so the **Repo check** workflow can run there. Outside modulane, see [Outside modulane](#outside-modulane).
+11. In modulane, if the repository should be readable by contributors, give the `contributors` team read access to it. The org base permission is "none", so a new repository is closed to them until then.
+
+## Repo check
+
+[modulane/repo-check](https://github.com/modulane/repo-check) compares a repository with this one: the rulesets, the repository and security settings, the **CI passed** job, the pinned actions, the shared workflows, the release setup, Dependabot, the labels and the copied files. `repo-check.yml` runs it every Monday through the shared workflow, which keeps one pull request open with what a file change can bring back, as Dependabot does for dependencies. A ruleset or a setting that has drifted fails the run instead, since no pull request can change it. Without the App, the job is skipped.
+
+So the other repositories follow a change made here on their own: merge it here, and each of them gets a pull request the next Monday, or straight away by running **Repo check** from its Actions tab.
+
+A repository that keeps a difference on purpose lists it in `.github/repo-check.yml`, with the reason:
+
+```yaml
+accept:
+  - finding: 'files:template-box:*'
+    reason: The checklist names the package a pull request releases.
+```
+
+`finding` is the id that repo-check prints next to each finding, and `*` matches any text. To check a repository by hand, before or after a change here, run `npx @modulane/repo-check --reference ../repo-template` in its clone.
+
+## Outside modulane
+
+A repository in another account or organization can start from this template and keep calling the shared workflows in modulane/workflows, which are public. It changes what names modulane or its maintainer:
+
+- `.github/CODEOWNERS` and the copyright holder in `LICENSE`.
+- `modulane/REPO-NAME` in `release.yml`, as in step 4.
+- The `modulane/*` exclusion in `.github/dependabot.yml`, which lets modulane's own releases skip the cooldown.
+- Issue templates, a security policy and a code of conduct, which modulane keeps in [modulane/.github](https://github.com/modulane/.github) for all its repositories.
+
+The **Repo check** workflow needs a GitHub App of its own: create one with read access to administration and write access to contents, pull requests and workflows, and no webhook. Install it on the repositories, then add its client ID as the `REPO_CHECK_CLIENT_ID` variable and a private key as the `REPO_CHECK_PRIVATE_KEY` secret, on the organization or the repository. Until then the job is skipped. repo-check compares with modulane/repo-template, so each of these changes is a difference: list them in `.github/repo-check.yml`, or compare with your own copy of this template, named in the `reference` input of the shared workflow.
 
 ## Publishing to npm
 
