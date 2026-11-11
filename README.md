@@ -15,7 +15,7 @@ On the GitHub Free plan, rulesets and branch protection only work on public repo
 | Path | What it is |
 | --- | --- |
 | `.github/workflows/ci.yml` | CI on every pull request, ending in the single **CI passed** job that the main ruleset requires. Replace the `checks` job with the repository's own checks. |
-| `.github/workflows/release.yml` | On every push to main, runs CI and then semantic-release: a `vX.Y.Z` tag and a GitHub release. |
+| `.github/workflows/release.yml` | On every push to main, runs CI and then semantic-release: a `vX.Y.Z` tag and a GitHub release. Its last job adds each pull request's **Release notes** section and closed issues to the release. See [Shared workflows](#shared-workflows). |
 | `.github/workflows/pr-title.yml` | Checks that the pull request title is a lowercase Conventional Commit. See [Shared workflows](#shared-workflows). |
 | `.github/workflows/ai-disclosure.yml` | Fails until the pull request's **AI use** section says whether AI tools were used, and how. See [AI disclosure](#ai-disclosure). |
 | `.github/workflows/pr-labels.yml` | Labels each pull request from its title (kind and `release:` label) and assigns its author, unless it is a bot. |
@@ -23,7 +23,7 @@ On the GitHub Free plan, rulesets and branch protection only work on public repo
 | `.github/workflows/zizmor.yml` | Audits workflow security on pull requests that change `.github/`. |
 | `.github/dependabot.yml` | One grouped pull request a week for the pinned actions and shared workflows, with a `ci:` prefix and a 7-day cooldown, except for modulane's own releases. |
 | `.github/labels.json` | The labels every repository uses. |
-| `.github/CODEOWNERS`, `.github/PULL_REQUEST_TEMPLATE.md` | Review requests, and the pull request template with its **AI use** section and checklist. |
+| `.github/CODEOWNERS`, `.github/PULL_REQUEST_TEMPLATE.md` | Review requests, and the pull request template with its **Release notes** and **AI use** sections and checklist. |
 | `.releaserc.json` | semantic-release without npm publishing. |
 | `.gitattributes`, `.editorconfig` | LF line endings in every checkout, Windows included, and the editor defaults. |
 | `rulesets/main.json` | Ruleset for the default branch: no deletion or force push, signed commits, squash-merged pull requests only, and the **Pull request title / Conventional Commit title**, **CI passed** and **AI disclosure / AI use section** checks are required. |
@@ -47,6 +47,7 @@ The check is the [modulane/ai-disclosure](https://github.com/modulane/ai-disclos
 - Each call is pinned to the commit SHA of a modulane/workflows release and grants the permissions the called workflow needs.
 - A check from a called workflow is named after both jobs, so the main ruleset requires **Pull request title / Conventional Commit title** and **AI disclosure / AI use section**. Keep the caller job names as they are.
 - `ci.yml` and `release.yml` stay in each repository, because they run the repository's own checks and release.
+- `release.yml` ends with a **Release notes** job that calls `release-notes.yml` there. It adds the **Release notes** section of each pull request, and the issues it closes, under the pull request's entry in the GitHub release. It handles each release once, older ones included, so running the release workflow by hand fills in any release it missed.
 
 ## Rules every workflow follows
 
