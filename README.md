@@ -76,9 +76,21 @@ The check is the [modulane/ai-disclosure](https://github.com/modulane/ai-disclos
 
    On the GitHub Free plan, rulesets only work on public repositories. A private repository gets them when it goes public, or when the org moves to a paid plan.
 
-8. Run the **Labels** workflow once from the Actions tab to create the labels.
-9. Install the **repo-check** GitHub App on the repository, so the **Repo check** workflow can run there.
-10. If the repository should be readable by contributors, give the `contributors` team read access to it. The org base permission is "none", so a new repository is closed to them until then.
+8. Turn on the security settings: Dependabot alerts and security updates, secret scanning with push protection, and private vulnerability reporting, which the [security policy](https://github.com/modulane/.github/blob/main/SECURITY.md) relies on.
+
+   ```bash
+   gh api repos/modulane/NAME/vulnerability-alerts --method PUT
+   gh api repos/modulane/NAME/automated-security-fixes --method PUT
+   gh api repos/modulane/NAME/private-vulnerability-reporting --method PUT
+   echo '{"security_and_analysis":{"secret_scanning":{"status":"enabled"},"secret_scanning_push_protection":{"status":"enabled"}}}' |
+     gh api repos/modulane/NAME --method PATCH --input -
+   ```
+
+   Secret scanning is free for public repositories only, so a private repository turns it on when it goes public, along with the rulesets. Workflows from a first-time contributor's fork need approval in every repository already: that setting comes from the org.
+
+9. Run the **Labels** workflow once from the Actions tab to create the labels.
+10. Install the **repo-check** GitHub App on the repository, so the **Repo check** workflow can run there.
+11. If the repository should be readable by contributors, give the `contributors` team read access to it. The org base permission is "none", so a new repository is closed to them until then.
 
 ## Repo check
 
