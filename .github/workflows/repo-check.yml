@@ -15,6 +15,9 @@ permissions: {}
 jobs:
   repo-check:
     name: Repo check
+    # Skipped until the App's client ID is set, as in a repository made from
+    # the template outside modulane (see the README).
+    if: vars.REPO_CHECK_CLIENT_ID != ''
     uses: modulane/workflows/.github/workflows/repo-check.yml@0000000000000000000000000000000000000000 # v1.3.0
     with:
       client-id: ${{ vars.REPO_CHECK_CLIENT_ID }}
